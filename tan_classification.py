@@ -43,7 +43,7 @@ parser.add_argument('--kl', action='store_true')
 parser.add_argument('--learn-emb', action='store_true')
 parser.add_argument('--dataset', type=str, default='physionet')
 parser.add_argument('--alpha', type=int, default=100)
-parser.add_argument('--beta', type=int, default=1000000)
+parser.add_argument('--beta', type=int, default=200000)
 parser.add_argument('--old-split', type=int, default=1)
 parser.add_argument('--nonormalize', action='store_true')
 parser.add_argument('--enc-num-heads', type=int, default=1)
@@ -203,7 +203,7 @@ if __name__ == '__main__':
                       train_acc/train_n, mse/train_n, val_loss, val_acc, test_acc, test_auc))
         
         
-        if best_val_loss * 1.08 < val_loss:
+        if best_val_loss * 1.2 < val_loss:
             print("early stop")
             break
 
