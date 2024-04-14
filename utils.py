@@ -87,10 +87,12 @@ def evaluate_classifier(model, aug, dec, kl_coef, test_loader, args=None, classi
         observed_data, observed_mask, observed_tp \
             = test_batch[:, :, :dim], test_batch[:, :, dim:2*dim], test_batch[:, :, -1]
         with torch.no_grad():
-            x_aug, tp_aug = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
+            # x_aug, tp_aug = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
                     
-            out = model(x_aug, tp_aug)
-
+            # out = model(x_aug, tp_aug)
+            x_aug, tp_aug, ob_x, ob_t = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
+            
+            out = model(torch.cat((x_aug, ob_x), -2), torch.cat((tp_aug, ob_t), -1))
             if reconst:
                 qz0_mean, qz0_logvar = out[:, :,
                                            :args.latent_dim], out[:, :, args.latent_dim:]

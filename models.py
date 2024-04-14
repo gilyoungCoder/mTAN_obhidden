@@ -102,7 +102,7 @@ class TimeSeriesAugmentation(nn.Module):
         self.final_transform_observed = nn.Sequential(
             nn.Linear(128, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, output_dim))
+            nn.Linear(hidden_dim, output_dim-1))
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, t, x):
@@ -119,10 +119,10 @@ class TimeSeriesAugmentation(nn.Module):
         output = self.sigmoid(augmented_out)
         
         observed_out = self.sigmoid(self.final_transform_observed(observed_representation))
-        ob_x, ob_t = observed_out[:, :, :self.dim-1], observed_out[ :, :, -1]
+        ob_x = observed_out
         # 새로운 t와 x 분리
         new_x, new_t = output[ :, :, :self.dim-1], output[ :, :, -1]
-        return torch.cat((new_x, ob_x), -2), torch.cat((new_t, ob_t), -1)
+        return new_x, new_t, ob_x, t
         # return torch.cat((new_x, ob_x), -2), torch.cat((new_t, t), -1)
 
 

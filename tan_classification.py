@@ -136,19 +136,20 @@ if __name__ == '__main__':
             observed_data, observed_mask, observed_tp \
                 = train_batch[:, :, :dim], train_batch[:, :, dim:2*dim], train_batch[:, :, -1]
             
-            x_aug, tp_aug = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
+            x_aug, tp_aug, ob_x, ob_t = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
             
-            # if random.random()<0.003:
-            #     print("time point")
-            #     print("original time: ", observed_tp[0])  
-            #     print("settransformer time: ", tp_aug[:, args.aug_ratio*num_tp:][0])      
-            # x_aug_copy = x_aug.clone()
-
-            # val = torch.where(mask == 1, x_aug, torch.zeros_like(x_aug))
+         
+  
             
             reg_loss = utils.diversity_regularization(tp_aug, drate = args.drate)
 
-            out = rec(x_aug, tp_aug)
+            out = rec(torch.cat((x_aug, ob_x), -2), torch.cat((tp_aug, ob_t), -1))
+            # out = rec(x_aug, tp_aug)
+            
+            if random.random()<0.001:
+                print("time point")
+                print("original time: ", observed_tp[0])  
+                print("settransformer time: ", ob_x[0, :, 0], ob_x[0, :, 0].shape)   
 
             
             # out = rec(torch.cat((data, mask), 2), time_steps)
