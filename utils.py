@@ -91,8 +91,15 @@ def evaluate_classifier(model, aug, dec, kl_coef, test_loader, args=None, classi
                     
             # out = model(x_aug, tp_aug)
             x_aug, tp_aug, ob_x, ob_t = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
+            new_mask_elements = torch.ones_like(x_aug)  # x_aug와 같은 크기의 1로 채워진 텐서 생성
+
+            x_total, tp_total = torch.cat((ob_x, x_aug), -2), torch.cat((ob_t, tp_aug), -1)
+
+            mask_total = torch.cat((observed_mask, new_mask_elements), -2)  # 기존 마스크와 새 마스크 결합
             
-            out = model(torch.cat((x_aug, ob_x), -2), torch.cat((tp_aug, ob_t), -1))
+
+            out = model(torch.cat((x_total, mask_total), 2), tp_total)
+            # out = model(torch.cat((x_aug, ob_x), -2), torch.cat((tp_aug, ob_t), -1))
             if reconst:
                 qz0_mean, qz0_logvar = out[:, :,
                                            :args.latent_dim], out[:, :, args.latent_dim:]

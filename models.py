@@ -137,7 +137,7 @@ class enc_mtan_rnn(nn.Module):
         self.nhidden = nhidden
         self.query = query
         self.learn_emb = learn_emb
-        self.att = multiTimeAttention(input_dim, nhidden, embed_time, num_heads)
+        self.att = multiTimeAttention(2*input_dim, nhidden, embed_time, num_heads)
         self.gru_rnn = nn.GRU(nhidden, nhidden, bidirectional=True, batch_first=True)
 
         self.hiddens_to_z0 = nn.Sequential(
@@ -168,14 +168,14 @@ class enc_mtan_rnn(nn.Module):
         pe[:, :, 1::2] = torch.cos(position * div_term)
         return pe
        
-    def forward(self, x, time_steps):
+    def forward(self, x, t):
 
-        time_steps = time_steps.cpu()
+        time_steps = t.cpu()
         
         # x_aug_copy = x_aug.clone()
- 
-        # mask = x[:, :, self.dim:]
-        # mask = torch.cat((mask, mask), 2)        
+        dim = x.size(2)//2
+        mask = x[:, :, dim:]
+        mask = torch.cat((mask, mask), 2)        
         if self.learn_emb:
             key = self.learn_time_embedding(time_steps).to(self.device)
             query = self.learn_time_embedding(self.query.unsqueeze(0)).to(self.device)
@@ -184,8 +184,9 @@ class enc_mtan_rnn(nn.Module):
             key = self.fixed_time_embedding(time_steps).to(self.device)
             query = self.fixed_time_embedding(self.query.unsqueeze(0)).to(self.device)
         
-        # x: torch.Size([50, 203, 82]) key : torch.Size([50, 203, 128])
-        out = self.att(query, key, x)
+        # print("tt: ", t)
+        # print("mask: ", mask.shape, mask[0, :, 0])
+        out = self.att(query, key, x, mask)
         out, _ = self.gru_rnn(out)
         out = self.hiddens_to_z0(out)
         return out

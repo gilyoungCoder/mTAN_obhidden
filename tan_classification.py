@@ -138,12 +138,14 @@ if __name__ == '__main__':
             
             x_aug, tp_aug, ob_x, ob_t = aug(observed_tp, torch.cat((observed_data, observed_mask), 2))
             
-         
+            x_total, tp_total = torch.cat((ob_x, x_aug), -2), torch.cat((ob_t, tp_aug), -1)
   
+            new_mask_elements = torch.ones_like(x_aug)  # x_aug와 같은 크기의 1로 채워진 텐서 생성
+            mask_total = torch.cat((observed_mask, new_mask_elements), -2)  # 기존 마스크와 새 마스크 결합
             
-            reg_loss = utils.diversity_regularization(tp_aug, drate = args.drate)
+            reg_loss = utils.diversity_regularization(tp_total, drate = args.drate)
 
-            out = rec(torch.cat((x_aug, ob_x), -2), torch.cat((tp_aug, ob_t), -1))
+            out = rec(torch.cat((x_total, mask_total), 2), tp_total)
             # out = rec(x_aug, tp_aug)
             
             if random.random()<0.001:
